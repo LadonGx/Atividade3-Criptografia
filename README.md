@@ -10,6 +10,8 @@ Projeto acadêmico que demonstra três técnicas de proteção e ocultação de 
 
 Cada módulo tem uma biblioteca em `src/`, um script de demonstração em `scripts/` e testes automatizados em `test/`.
 
+> 📄 **O relatório completo do trabalho está em [`RELATORIO.md`](RELATORIO.md)**, na raiz do projeto.
+
 ## Pré-requisitos
 
 - **Node.js 20 ou superior** (`node --version`)
@@ -42,6 +44,13 @@ Cada demonstração imprime as etapas no console, incluindo os casos de falha (s
 npm test
 ```
 
+### Material do relatório
+
+```bash
+npm run figuras   # gera as figuras de assets/figuras/ (comparação visual e zoom 8x)
+npm run saidas    # grava a saída de cada demo e dos testes em output/saidas/*.txt
+```
+
 ### CLI de esteganografia
 
 ```bash
@@ -72,6 +81,7 @@ Também é possível substituí-la por uma foto própria — desde que seja **PN
 
 ```
 .
+├── RELATORIO.md          relatório do trabalho
 ├── src/
 │   ├── hashing/          hash.js (salt/hash/comparação) e cadastro.js (cadastro/login)
 │   ├── db/               bancoSimulado.js — persistência em data/usuarios.json
@@ -80,9 +90,9 @@ Também é possível substituí-la por uma foto própria — desde que seja **PN
 ├── scripts/              demonstrações, CLI e gerador de imagem
 ├── test/                 testes com node:test
 ├── assets/original.png   imagem portadora (versionada)
+├── assets/figuras/       figuras do relatório (geradas por npm run figuras)
 ├── output/               arquivos gerados pelas demos (ignorado pelo Git)
-├── data/                 banco simulado (ignorado pelo Git)
-└── docs/RELATORIO.md     relatório do trabalho
+└── data/                 banco simulado (ignorado pelo Git)
 ```
 
 ## O que cada demonstração mostra
@@ -97,11 +107,9 @@ Também é possível substituí-la por uma foto própria — desde que seja **PN
 
 Os dados financeiros usados na demonstração são **fictícios**. O número de cartão `4111 1111 1111 1111` é o número de teste público da Visa e não corresponde a nenhum cartão real.
 
-Este é um projeto didático. Para armazenamento de senhas em produção, o recomendado é bcrypt, scrypt ou Argon2 — algoritmos propositalmente lentos —, e não SHA-256. Veja a seção de limitações em [`docs/RELATORIO.md`](docs/RELATORIO.md).
+Este é um projeto didático. Para armazenamento de senhas em produção, o recomendado é bcrypt, scrypt ou Argon2 — algoritmos propositalmente lentos —, e não SHA-256. Veja a seção de limitações em [`RELATORIO.md`](RELATORIO.md).
 
 ## Equipe
 
-- [Nome 1]
-- [Nome 2]
-- [Nome 3]
-- [Nome 4]
+- Guilherme Savio
+- João Pedro Francisco

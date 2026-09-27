@@ -1,11 +1,12 @@
 # Relatório — Proteção e Ocultação de Dados
 
-**Disciplina:** [Nome da disciplina]
-**Professor(a):** [Nome]
-**Equipe:** [Nome 1], [Nome 2], [Nome 3], [Nome 4]
-**Data:** [dd/mm/aaaa]
+**Disciplina:** CONFIABILIDADE, SEGURANÇA DE SISTEMAS E ERGONOMIA
+**Equipe:** Guilherme Savio e João Pedro Francisco
+**Data:** 27/09/2026
 
 > **Como usar este rascunho:** o texto abaixo já traz o conteúdo técnico de cada seção. Substitua os campos entre colchetes, revise a redação com as palavras da equipe e insira as capturas de tela nos pontos marcados com `[PRINT: ...]`.
+>
+> As figuras das seções 5.4 já estão prontas e embutidas — foram geradas por `npm run figuras`. Para os prints de terminal, `npm run saidas` grava a saída exata de cada comando em `output/saidas/*.txt`, de onde o texto pode ser copiado caso a equipe prefira blocos de código em vez de capturas de tela.
 
 ---
 
@@ -214,9 +215,13 @@ O **mapa de diferenças** (`output/mapa-diferencas.png`) marca em branco os pixe
 
 `[PRINT: saída completa de npm run demo:esteg]`
 
-`[PRINT: assets/original.png e output/imagem-com-segredo.png lado a lado — visualmente idênticas]`
+**Figura 1 — Comparação visual.** À esquerda a imagem original, ao centro a mesma imagem com os 65 bytes ocultos e à direita o mapa de diferenças. As duas primeiras são indistinguíveis a olho nu; no mapa, a faixa branca no topo revela onde os bits foram gravados. Gerada por `npm run figuras`.
 
-`[PRINT: output/mapa-diferencas.png]`
+![Comparação entre a imagem original, a imagem com mensagem oculta e o mapa de diferenças](assets/figuras/comparacao-lado-a-lado.png)
+
+**Figura 2 — Ampliação 8×.** Os primeiros 64 × 8 pixels das duas imagens, justamente a região onde a mensagem foi gravada, ampliados oito vezes. Mesmo nessa escala nenhuma diferença é perceptível — coerente com a variação máxima de 1 unidade em 255 por canal.
+
+![Ampliação de 8x da faixa de pixels alterados, nas duas imagens](assets/figuras/zoom-primeira-linha.png)
 
 ### 5.5 Limitações
 

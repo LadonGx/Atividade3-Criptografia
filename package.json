@@ -11,7 +11,9 @@
     "demo:cripto": "node scripts/demo-criptografia.js",
     "demo:esteg": "node scripts/demo-esteganografia.js",
     "demo": "npm run demo:hash && npm run demo:cripto && npm run demo:esteg",
-    "test": "node --test test/"
+    "test": "node --test test/",
+    "figuras": "node scripts/gerar-figuras.js",
+    "saidas": "node scripts/gerar-saidas.js"
   },
   "keywords": [
     "criptografia",
