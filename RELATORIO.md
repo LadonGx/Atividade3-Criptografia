@@ -4,9 +4,9 @@
 **Equipe:** Guilherme Savio e João Pedro Francisco
 **Data:** 27/09/2026
 
-> **Como usar este rascunho:** o texto abaixo já traz o conteúdo técnico de cada seção. Substitua os campos entre colchetes, revise a redação com as palavras da equipe e insira as capturas de tela nos pontos marcados com `[PRINT: ...]`.
+> **Sobre os resultados apresentados:** todos os blocos de saída deste relatório são a saída real dos scripts, copiada da execução no terminal — não são exemplos ilustrativos. Podem ser reproduzidos com `npm run demo` e `npm test`; `npm run saidas` grava a saída de cada comando em `output/saidas/*.txt`. As figuras da seção 5.4 são geradas por `npm run figuras`.
 >
-> As figuras das seções 5.4 já estão prontas e embutidas — foram geradas por `npm run figuras`. Para os prints de terminal, `npm run saidas` grava a saída exata de cada comando em `output/saidas/*.txt`, de onde o texto pode ser copiado caso a equipe prefira blocos de código em vez de capturas de tela.
+> Como salts, IVs e chaves são aleatórios a cada execução, os valores hexadecimais e em base64 mudam a cada rodada — o que se mantém são as propriedades demonstradas.
 
 ---
 
@@ -77,11 +77,115 @@ Arquivos: `src/hashing/hash.js`, `src/hashing/cadastro.js`, `src/db/bancoSimulad
 
 ### 3.4 Resultados
 
-A demonstração (`npm run demo:hash`) cadastra dois usuários com a **mesma senha** e exibe salt e hash de cada um, mostrando que os hashes são diferentes; imprime o conteúdo de `data/usuarios.json` e verifica programaticamente que a senha em texto puro não aparece no arquivo; executa login correto, login com senha errada e tentativa de cadastro duplicado; e, por fim, mostra qual seria o hash sem salt — idêntico para os dois usuários.
+A demonstração `npm run demo:hash` cadastra dois usuários com a **mesma senha**, exibe o que foi gravado em disco, executa os cenários de login e termina comparando com o que aconteceria sem salt. A saída real da execução está reproduzida abaixo, seção por seção.
 
-`[PRINT: saída completa de npm run demo:hash]`
+#### 3.4.1 Dois usuários, a mesma senha → hashes diferentes
 
-`[PRINT: trecho de data/usuarios.json mostrando salt e hash, sem a senha]`
+```
+Senha usada pelos dois: "senhaForte123"
+
+Ana Souza <ana@exemplo.com>
+  salt: f7a6b0b600f91c4f1fbdabf17be1508a
+  hash: eb3cb13a5295e27a33946fea4287fb7b9197adaacdbbe696f2e8fd1c4c2f9994
+
+Bruno Lima <bruno@exemplo.com>
+  salt: 655cfb6169b30cb03fe7a65329d8eb2d
+  hash: e1eac0819ccf77f3f6c0996f44d192e00877b9f27d461007f219a2e9dc5aa3c9
+
+✔ Os hashes são DIFERENTES mesmo com a mesma senha — mérito do salt aleatório.
+```
+
+Os dois usuários digitaram exatamente a mesma senha, e mesmo assim os hashes não guardam nenhuma relação entre si — quem olhasse o banco vazado não teria como suspeitar que as senhas coincidem. É o salt fazendo o seu trabalho.
+
+#### 3.4.2 Conteúdo gravado em disco
+
+```json
+[
+  {
+    "id": "89c8efab-1503-4f87-988d-cfdb50b81043",
+    "nome": "Ana Souza",
+    "email": "ana@exemplo.com",
+    "salt": "f7a6b0b600f91c4f1fbdabf17be1508a",
+    "hash": "eb3cb13a5295e27a33946fea4287fb7b9197adaacdbbe696f2e8fd1c4c2f9994",
+    "algoritmo": "sha256",
+    "criadoEm": "2026-09-27T18:58:10.903Z"
+  },
+  {
+    "id": "a6e81227-d18b-461f-8efd-ae2dcf7cca76",
+    "nome": "Bruno Lima",
+    "email": "bruno@exemplo.com",
+    "salt": "655cfb6169b30cb03fe7a65329d8eb2d",
+    "hash": "e1eac0819ccf77f3f6c0996f44d192e00877b9f27d461007f219a2e9dc5aa3c9",
+    "algoritmo": "sha256",
+    "criadoEm": "2026-09-27T18:58:10.911Z"
+  }
+]
+```
+
+```
+✔ A senha em texto puro NÃO aparece no arquivo.
+```
+
+Este é o requisito central do módulo: não existe campo `senha` no registro, e a busca pela string `senhaForte123` dentro do arquivo não retorna nada.
+
+#### 3.4.3 Login com a senha correta
+
+```
+{
+  sucesso: true,
+  usuario: {
+    id: '89c8efab-1503-4f87-988d-cfdb50b81043',
+    nome: 'Ana Souza',
+    email: 'ana@exemplo.com',
+    algoritmo: 'sha256',
+    criadoEm: '2026-09-27T18:58:10.903Z'
+  }
+}
+```
+
+Note que o objeto devolvido não traz nem o hash nem o salt.
+
+#### 3.4.4 Login com a senha errada
+
+```
+{ sucesso: false, motivo: 'E-mail ou senha inválidos' }
+
+Observação: o mesmo motivo é devolvido para e-mail inexistente:
+{ sucesso: false, motivo: 'E-mail ou senha inválidos' }
+```
+
+As duas falhas são indistinguíveis para quem está do lado de fora — é o que impede a enumeração de e-mails cadastrados.
+
+#### 3.4.5 Cadastro com e-mail duplicado
+
+```
+✔ Erro tratado: Já existe um usuário cadastrado com o e-mail ana@exemplo.com
+```
+
+#### 3.4.6 E se não houvesse salt?
+
+```
+SHA-256("senhaForte123") sem salt:
+  Ana:   d0ad3898fb309b0eb765e6886434ff7d12fa441efc73f25f394d0fd749f71dff
+  Bruno: d0ad3898fb309b0eb765e6886434ff7d12fa441efc73f25f394d0fd749f71dff
+
+✘ Hashes IDÊNTICOS: um vazamento revelaria que os dois usam a mesma senha,
+  e uma rainbow table quebraria os dois de uma só vez.
+```
+
+O contraste com a seção 3.4.1 é a justificativa prática do salt.
+
+#### 3.4.7 Efeito avalanche
+
+```
+salt fixo: 95941d9851859e7b00012bc5d7c0129d
+hash("senhaForte123") = e44093eaaf00662db2c07b53e84b5a7fb5c67d08e708b1febc694e85798d3738
+hash("senhaForte124") = db6f9b382e8c44fd53a11783c2abc0d75feb5fc54a2b6e458cf6e630f241390a
+
+✔ Um único caractere diferente muda o hash inteiro.
+```
+
+Mudar o último caractere de `3` para `4` produz um hash sem nenhuma semelhança com o anterior. É essa propriedade que impede deduzir a senha por aproximações sucessivas.
 
 ### 3.5 Limitação
 
@@ -138,11 +242,109 @@ A demonstração (`scripts/demo-criptografia.js`) simula remetente e destinatár
 
 ### 4.4 Resultados
 
-A demonstração mostra, em sequência: a derivação da chave a partir da senha combinada; o pacote cifrado, no qual nenhum dado financeiro é reconhecível; a decifragem pelo destinatário com `assert` confirmando que o texto recuperado é idêntico ao original; e três cenários de falha — senha errada, 1 byte do texto cifrado invertido e auth tag alterada —, todos rejeitados pelo GCM.
+A demonstração `npm run demo:cripto` percorre o caminho completo — remetente, canal, destinatário — e termina com três cenários de falha: senha errada, 1 byte do texto cifrado invertido e auth tag alterada. A saída real da execução está reproduzida abaixo, seção por seção.
 
-`[PRINT: saída completa de npm run demo:cripto]`
+#### 4.4.1 Dados a proteger
 
-`[PRINT: conteúdo de output/mensagem.enc.json]`
+```json
+{
+  "titular": "Maria Exemplo",
+  "banco": "Banco Fictício S.A.",
+  "agencia": "0001",
+  "conta": "12345-6",
+  "saldo": 15320.5,
+  "cartao": "4111 1111 1111 1111",
+  "ultimaTransacao": {
+    "valor": -289.9,
+    "descricao": "Supermercado",
+    "data": "2026-09-20"
+  }
+}
+```
+
+#### 4.4.2 Remetente — derivação da chave e cifragem
+
+```
+Senha combinada: "combinamos-essa-senha-no-cafe"
+Salt da derivação (aleatório): b333fe97cbfaa277d9d40187dc681401
+Chave derivada (scrypt, 32 bytes): cb682828ff052269280d6007cb347431cf1844e076c72b66ef07f2afd10e0b58
+
+Pacote gravado em output\mensagem.enc.json
+```
+
+A senha legível de 29 caracteres vira uma chave de 256 bits indistinguível de ruído.
+
+#### 4.4.3 O que trafega pelo canal
+
+```json
+{
+  "algoritmo": "aes-256-gcm",
+  "iv": "x+eQ+glB7T/N1ap2",
+  "authTag": "Muib+v9lpdTPD4PrStDivg==",
+  "textoCifrado": "/UggJqcYLRRFE5itAC3yTJ3nP2Z1qr+UBaosTm8QpUQk27YZONsAfkoJ3AYkb6n+5NzMaKP6lJHl7LLxJfvXI+jMV5z2H1XgTK98O+BC8CDSXyuf353jF44EZvTlDHJa3ZxnqeCdYjHPLGobiG3/TWHSgVSu3z1fgZ9AKDHUVlr9glvCDRbKVdTPVaf2C3uBRXlie2+PEjPZriJMX8UjFePb2b3z/ySaOT1vcGgLjvv4LIIBCiVbK93VuLgiDsCv2otpQU5IVXpSMKUayzOnOV1mTk6mj6EFewERfC3VzrO2znhvqz0cQRcFErFwdTTcIAvnzIA9JYeLCCKszlK7qmAke8iTq4wIXjcT5LAxpn8=",
+  "salt": "szP+l8v6onfZ1AGH3GgUAQ=="
+}
+```
+
+```
+✔ Nenhum dado financeiro é reconhecível no texto cifrado.
+✔ "4111" aparece no texto cifrado? não
+```
+
+Quem interceptar o arquivo não encontra nem o nome do titular, nem o saldo, nem qualquer fragmento do número do cartão.
+
+#### 4.4.4 Destinatário — decifragem com a chave correta
+
+```
+Chave derivada pelo destinatário: cb682828ff052269280d6007cb347431cf1844e076c72b66ef07f2afd10e0b58
+Chaves iguais? sim (mesma senha + mesmo salt)
+```
+
+```json
+{
+  "titular": "Maria Exemplo",
+  "banco": "Banco Fictício S.A.",
+  "agencia": "0001",
+  "conta": "12345-6",
+  "saldo": 15320.5,
+  "cartao": "4111 1111 1111 1111",
+  "ultimaTransacao": {
+    "valor": -289.9,
+    "descricao": "Supermercado",
+    "data": "2026-09-20"
+  }
+}
+```
+
+```
+✔ Texto original recuperado
+```
+
+Esta é a **função reversa** exigida pela atividade: o destinatário chegou à mesma chave partindo da senha combinada e do salt que veio no pacote, e recuperou o texto byte a byte (conferido com `assert` no script).
+
+#### 4.4.5 Tentativa com a senha errada
+
+```
+✔ Erro capturado: Falha na decifragem: chave incorreta ou dados adulterados
+```
+
+#### 4.4.6 Adulteração de 1 byte no texto cifrado
+
+```
+Byte 0 antes:  253
+Byte 0 depois: 252
+✔ Integridade violada e detectada pelo GCM: Falha na decifragem: chave incorreta ou dados adulterados
+```
+
+Um único bit invertido em um pacote de 256 bytes já é suficiente para a auth tag não fechar. A decifragem **falha**, em vez de devolver um texto corrompido — é exatamente a diferença entre o GCM e um modo sem autenticação como o CBC.
+
+#### 4.4.7 Adulteração da auth tag
+
+```
+✔ Erro capturado: Falha na decifragem: chave incorreta ou dados adulterados
+```
+
+Nem adulterar a própria tag ajuda: ela é verificada contra o texto cifrado, não isoladamente.
 
 ### 4.5 Limitação
 
@@ -205,15 +407,74 @@ Medidas obtidas com `npm run demo:esteg` sobre a imagem de 512×512, ocultando a
 | **PSNR** | **82,17 dB** |
 | Canal alfa | intacto |
 
-> Os valores acima foram obtidos em uma execução; refaça a medição com a imagem final da equipe e atualize a tabela.
-
 O **PSNR** (*Peak Signal-to-Noise Ratio*) mede a razão entre o sinal máximo e o ruído introduzido, em escala logarítmica: `PSNR = 10 × log10(255² / MSE)`. Na literatura de processamento de imagens, valores acima de 40 dB já indicam degradação imperceptível; os **82 dB** obtidos estão muito acima disso, confirmando numericamente que a alteração é invisível.
 
 Note que apenas 310 canais foram alterados, e não os 584 que receberam gravação (8 bytes de cabeçalho + 65 da mensagem = 73 bytes × 8 bits). A razão é que um bit só altera o pixel quando difere do que já estava lá: como os bits menos significativos de uma imagem com ruído são aproximadamente aleatórios, em média **metade** das gravações não muda valor nenhum — de fato, 310/584 = 53%.
 
 O **mapa de diferenças** (`output/mapa-diferencas.png`) marca em branco os pixels que tiveram algum canal alterado. Como a gravação é sequencial a partir do primeiro pixel, os pontos brancos ficam concentrados no canto superior esquerdo — e apenas 173 dos 262.144 pixels aparecem.
 
-`[PRINT: saída completa de npm run demo:esteg]`
+A saída real da execução de `npm run demo:esteg` está reproduzida abaixo, seção por seção.
+
+#### 5.4.1 Imagem portadora
+
+```
+Dimensões:  512 x 512 pixels
+Canais RGB: 786432 (1 bit oculto em cada)
+Capacidade: 98296 bytes (~96.0 KB de texto)
+```
+
+#### 5.4.2 Ocultando a mensagem
+
+```
+Mensagem: "Reunião confidencial: servidor de backup migra na sexta às 22h."
+Tamanho em UTF-8: 65 bytes
+Ocupação da capacidade: 0.0661%
+Imagem gerada: output\imagem-com-segredo.png
+```
+
+A frase tem 63 caracteres mas ocupa 65 bytes: `ã` e `à` usam 2 bytes cada em UTF-8. É por isso que o protocolo grava o tamanho em **bytes**, e não em caracteres.
+
+#### 5.4.3 Impacto visual
+
+```
+Canais comparados:   786432
+Canais alterados:    310 (0.0394%)
+Diferença máxima:    1 (de 255 possíveis)
+MSE:                 3.942e-4
+PSNR:                82.17 dB
+Canal alfa intacto:  sim
+
+✔ Nenhum canal variou mais que 1 unidade e o alfa ficou intacto.
+✔ PSNR acima de 50 dB: a alteração é visualmente imperceptível.
+```
+
+#### 5.4.4 Mapa de diferenças
+
+```
+Arquivo gerado: output\mapa-diferencas.png
+Pixels com algum canal alterado: 173 de 262144 (0.0660%)
+Os pixels brancos, no canto superior esquerdo, são onde a mensagem foi gravada.
+```
+
+#### 5.4.5 Extraindo a mensagem da imagem alterada
+
+```
+Mensagem recuperada: "Reunião confidencial: servidor de backup migra na sexta às 22h."
+
+✔ Mensagem idêntica à original
+```
+
+A varredura da imagem alterada recuperou a frase completa, com acentos preservados — o segundo requisito do módulo.
+
+#### 5.4.6 Tentando extrair da imagem original
+
+```
+✔ Erro esperado: Nenhuma mensagem oculta encontrada
+```
+
+A assinatura `STG1` não foi encontrada no cabeçalho, então a função recusa a leitura em vez de devolver bytes aleatórios interpretados como texto.
+
+#### 5.4.7 Comparação visual
 
 **Figura 1 — Comparação visual.** À esquerda a imagem original, ao centro a mesma imagem com os 65 bytes ocultos e à direita o mapa de diferenças. As duas primeiras são indistinguíveis a olho nu; no mapa, a faixa branca no topo revela onde os bits foram gravados. Gerada por `npm run figuras`.
 
@@ -244,13 +505,72 @@ Os testes usam o executor nativo `node:test` com `node:assert/strict`, sem depen
 
 Os testes que precisam de disco usam arquivos temporários em `os.tmpdir()`, de modo que não interferem no banco nem nas imagens da demonstração.
 
+### 6.1 Saída da execução
+
 ```
-# tests 49
-# pass 49
-# fail 0
+$ npm test
+
+✔ gerarChaveAleatoria devolve 32 bytes distintos a cada chamada (1.7311ms)
+✔ derivarChave é determinística para a mesma senha e salt (88.7218ms)
+✔ derivarChave produz chaves diferentes com salts diferentes (82.4052ms)
+✔ ida e volta recupera o texto exato, com acentos e emojis (1.0595ms)
+✔ ida e volta funciona com texto vazio e com texto longo (1.3195ms)
+✔ o pacote tem o formato esperado (0.3413ms)
+✔ duas cifragens do mesmo texto com a mesma chave geram saídas diferentes (IV aleatório) (0.4649ms)
+✔ chave errada lança erro (0.5264ms)
+✔ texto cifrado adulterado lança erro (0.4095ms)
+✔ auth tag adulterada lança erro (0.3653ms)
+✔ IV adulterado lança erro (0.263ms)
+✔ cifrar rejeita chave de tamanho inválido e entrada não textual (0.1924ms)
+✔ decifrar rejeita pacote incompleto ou com algoritmo desconhecido (0.2499ms)
+✔ o texto cifrado não contém o texto original em claro (0.2895ms)
+✔ bytesParaBits e bitsParaBytes são inversos (1.5684ms)
+✔ bytesParaBits usa o bit mais significativo primeiro (0.2336ms)
+✔ bitsParaBytes rejeita quantidade que não é múltipla de 8 (0.3355ms)
+✔ escreverBits e lerBits pulam o canal alfa (0.2039ms)
+✔ lerBits respeita o deslocamento inicial (0.2089ms)
+✔ capacidade segue a fórmula largura x altura x 3 / 8 - cabeçalho (1.92ms)
+✔ ida e volta recupera a mensagem exata, com acentos e emoji (16.846ms)
+✔ mensagem no limite exato da capacidade funciona (5.8573ms)
+✔ nenhum canal difere em mais de 1 entre a original e a alterada (7.6116ms)
+✔ o canal alfa permanece intacto (7.5089ms)
+✔ mensagem maior que a capacidade lança erro (2.7718ms)
+✔ imagem sem mensagem lança erro na extração (2.8989ms)
+✔ contemMensagem identifica a imagem alterada (10.0343ms)
+✔ saída que não é .png é recusada (2.2228ms)
+✔ mensagem vazia é recusada (1.2489ms)
+✔ a imagem original não é modificada no disco (2.7861ms)
+✔ ocultar duas vezes sobrescreve a mensagem anterior (5.763ms)
+✔ gerarMapaDiferencas produz um PNG com os pixels alterados em branco (6.5855ms)
+✔ compararImagens recusa dimensões diferentes (3.1119ms)
+✔ compararImagens devolve PSNR infinito para imagens idênticas (3.9147ms)
+✔ gerarSalt produz valores diferentes a cada chamada (3.4089ms)
+✔ gerarSalt(16) devolve 32 caracteres hexadecimais (0.2456ms)
+✔ mesma senha e mesmo salt produzem o mesmo hash (determinismo) (0.6295ms)
+✔ mesma senha com salts diferentes produz hashes diferentes (0.1864ms)
+✔ gerarHash devolve 64 caracteres hexadecimais (SHA-256) (0.1777ms)
+✔ compararHash aceita a senha correta e rejeita a incorreta (0.2486ms)
+✔ compararHash devolve false para hash armazenado de tamanho inválido (0.148ms)
+✔ o arquivo do banco não contém a senha em texto puro (9.7876ms)
+✔ cadastrarUsuario não devolve hash nem senha (1.4986ms)
+✔ cadastro com e-mail duplicado lança erro (9.1011ms)
+✔ cadastro rejeita senha curta e campos obrigatórios ausentes (0.7258ms)
+✔ dois usuários com a mesma senha têm salts e hashes diferentes (15.3083ms)
+✔ autenticarUsuario funciona com a senha correta (6.5634ms)
+✔ autenticarUsuario usa o mesmo motivo para senha errada e usuário inexistente (8.8517ms)
+✔ lerUsuarios devolve array vazio quando o arquivo não existe (0.8449ms)
+
+ℹ tests 49
+ℹ suites 0
+ℹ pass 49
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 265.583
 ```
 
-`[PRINT: saída de npm test]`
+Os 49 casos passam em menos de 0,3 segundo, sem nenhuma dependência de teste externa.
 
 ---
 
