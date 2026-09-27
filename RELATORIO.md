@@ -1,7 +1,7 @@
 # Relatório — Proteção e Ocultação de Dados
 
 **Disciplina:** CONFIABILIDADE, SEGURANÇA DE SISTEMAS E ERGONOMIA
-**Equipe:** Guilherme Savio e João Pedro Francisco
+**Aluno:** Guilherme Savio
 **Data:** 27/09/2026
 
 > **Sobre os resultados apresentados:** todos os blocos de saída deste relatório são a saída real dos scripts, copiada da execução no terminal — não são exemplos ilustrativos. Podem ser reproduzidos com `npm run demo` e `npm test`; `npm run saidas` grava a saída de cada comando em `output/saidas/*.txt`. As figuras da seção 5.4 são geradas por `npm run figuras`.

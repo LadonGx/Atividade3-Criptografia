@@ -109,7 +109,6 @@ Os dados financeiros usados na demonstração são **fictícios**. O número de 
 
 Este é um projeto didático. Para armazenamento de senhas em produção, o recomendado é bcrypt, scrypt ou Argon2 — algoritmos propositalmente lentos —, e não SHA-256. Veja a seção de limitações em [`RELATORIO.md`](RELATORIO.md).
 
-## Equipe
+## Aluno
 
 - Guilherme Savio
-- João Pedro Francisco
