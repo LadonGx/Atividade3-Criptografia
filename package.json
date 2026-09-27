@@ -1,0 +1,26 @@
+{
+  "name": "seguranca-dados-node",
+  "version": "1.0.0",
+  "description": "Projeto academico: hashing com salt, criptografia AES-256-GCM e esteganografia LSB em Node.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "demo:hash": "node scripts/demo-hashing.js",
+    "demo:cripto": "node scripts/demo-criptografia.js",
+    "demo:esteg": "node scripts/demo-esteganografia.js",
+    "demo": "npm run demo:hash && npm run demo:cripto && npm run demo:esteg",
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "criptografia",
+    "hashing",
+    "esteganografia",
+    "seguranca"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "pngjs": "^7.0.0"
+  }
+}
