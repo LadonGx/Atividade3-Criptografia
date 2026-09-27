@@ -208,7 +208,7 @@ Medidas obtidas com `npm run demo:esteg` sobre a imagem de 512×512, ocultando a
 
 O **PSNR** (*Peak Signal-to-Noise Ratio*) mede a razão entre o sinal máximo e o ruído introduzido, em escala logarítmica: `PSNR = 10 × log10(255² / MSE)`. Na literatura de processamento de imagens, valores acima de 40 dB já indicam degradação imperceptível; os **82 dB** obtidos estão muito acima disso, confirmando numericamente que a alteração é invisível.
 
-Note que apenas 310 canais foram alterados, e não 65 × 8 = 520: um bit só precisa ser escrito quando difere do que já estava lá, então em média metade dos bits gravados não muda nada.
+Note que apenas 310 canais foram alterados, e não os 584 que receberam gravação (8 bytes de cabeçalho + 65 da mensagem = 73 bytes × 8 bits). A razão é que um bit só altera o pixel quando difere do que já estava lá: como os bits menos significativos de uma imagem com ruído são aproximadamente aleatórios, em média **metade** das gravações não muda valor nenhum — de fato, 310/584 = 53%.
 
 O **mapa de diferenças** (`output/mapa-diferencas.png`) marca em branco os pixels que tiveram algum canal alterado. Como a gravação é sequencial a partir do primeiro pixel, os pontos brancos ficam concentrados no canto superior esquerdo — e apenas 173 dos 262.144 pixels aparecem.
 
@@ -278,7 +278,7 @@ A conclusão mais ampla é que essas técnicas se complementam e que segurança 
 
 ## 9. Repositório
 
-Código-fonte completo: `[LINK DO GITHUB]`
+Código-fonte completo: **https://github.com/LadonGx/Atividade3-Criptografia**
 
 Histórico de commits organizado por fase:
 
